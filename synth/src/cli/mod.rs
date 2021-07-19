@@ -7,6 +7,7 @@ mod telemetry;
 mod mysql;
 mod import_utils;
 mod json;
+mod postgres;
 
 use crate::cli::export::SomeExportStrategy;
 use crate::cli::export::{ExportParams, ExportStrategy};

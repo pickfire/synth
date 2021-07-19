@@ -7,11 +7,11 @@ use std::convert::TryFrom;
 
 use crate::cli::mongo::MongoExportStrategy;
 use synth_core::{Name, Namespace};
-use serde_json::Value;
 use async_std::task;
 use crate::datasource::DataSource;
 use crate::sampler::Sampler;
 use crate::cli::mysql::MySqlExportStrategy;
+use synth_core::graph::Value;
 
 pub trait ExportStrategy {
     fn export(self, params: ExportParams) -> Result<()>;
@@ -29,7 +29,7 @@ pub enum SomeExportStrategy {
     StdoutExportStrategy(StdoutExportStrategy),
     FromPostgres(PostgresExportStrategy),
     FromMongo(MongoExportStrategy),
-    FromMySql(MySqlExportStrategy)
+    FromMySql(MySqlExportStrategy),
 }
 
 impl ExportStrategy for SomeExportStrategy {
@@ -78,7 +78,7 @@ impl FromStr for SomeExportStrategy {
 }
 
 pub(crate) fn create_and_insert_values<T: DataSource>(params: ExportParams, datasource: &T)
-    -> Result<()> {
+                                                      -> Result<()> {
     let sampler = Sampler::try_from(&params.namespace)?;
     let values =
         sampler.sample_seeded(params.collection_name.clone(), params.target, params.seed)?;
@@ -104,12 +104,12 @@ pub(crate) fn create_and_insert_values<T: DataSource>(params: ExportParams, data
     }
 }
 
-fn insert_data<T: DataSource>(datasource: &T, collection_name: String, collection_json: &Vec<Value>)
-    -> Result<()> {
+fn insert_data<T: DataSource>(datasource: &T, collection_name: String, collection: &Vec<Value>)
+                              -> Result<()> {
     task::block_on(
         datasource.insert_data(
             collection_name.clone(),
-            collection_json
+            collection,
         )
     ).context(format!("Failed to insert data for collection {}", collection_name))
 }
